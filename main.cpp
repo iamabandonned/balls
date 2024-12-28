@@ -1,49 +1,54 @@
 #include <iostream>
-#include <string>
+#include <stdio.h>
+#include <windows.h>
+#include <cmath>
 
-#define ROWS 100
-#define COLLUMNS 100
+//so if we have a typical cmd window ROWS would be like height and COLLUMNS like width
 
-void init(char map[ROWS][COLLUMNS], char background) {
-    for(int i = 0; i < ROWS; ++i){
-        for(int j = 0; j < COLLUMNS; ++j){
-            map[i][j] = background;
-        }
-    }
-}
+#define ROWS 30
+#define COLLUMNS 120
 
-void update(char map[ROWS][COLLUMNS]){
-    for(int i = 0; i < ROWS-1; ++i){
-        for(int j = 0; j < COLLUMNS-1; ++j){
-            std::cout << map[i][j];
-        }
-        std::cout << "\n";
-    }
-} 
-
-void draw_rect(int x1, int x2, int y1, int y2, char map[ROWS][COLLUMNS]){
-    for(int i = y1; i < y2; ++i){
-        for(int j = x1; j < x2; ++j){
-            map[i][j]='#';
-        }
-    }
+//for resizing console
+void resize_console(int width, int height) { 
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE); 
+    COORD bufferSize = { width, height }; 
+    SetConsoleScreenBufferSize(hOut, bufferSize);  
+    SMALL_RECT windowSize = { 0, 0, width - 1, height - 1 }; 
+    SetConsoleWindowInfo(hOut, TRUE, &windowSize); 
 }
 
 int main(){
-    char map[ROWS][COLLUMNS];
-    int x1 = 10, y1 = 10, x2 = 20, y2 = 20;
+    //map[x * y]
+    char* map = new char[COLLUMNS * ROWS];
 
-    init(map, '\0');
+    //aspect = screen ratio * symbol ratio
+    float aspect = 2.0f;
+    //for sin in cycles
+    float coef = 0;
 
-    while(true){
-        /*for(int i = 0; i < ROWS; ++i){
-            for(int j = 0; j < COLLUMNS; ++j){
-                map[i][j] = '#';
-                update(map);
+    resize_console(COLLUMNS, ROWS-1);
+
+    while (true) {
+        for (int y = 0; y < ROWS; ++y) {
+            for (int x = 0; x < COLLUMNS; ++x) {
+                float dx = (float)x / COLLUMNS * 2.0f - 1.0f;
+                float dy = (float)y / ROWS * 2.0f - 1.0f;
+
+                //so basically to print a circle correctly we have to multiply x coord by aspect
+                map[y * COLLUMNS + x] = ' ';
+                if (pow((dx * aspect) - sin(coef), 2) + pow(dy, 2) < 0.5) {
+                    map[y * COLLUMNS + x] = '@';
+                }
+                if (pow((dx * aspect) + sin(coef), 2) + pow(dy, 2) < 0.5) {
+                    map[y * COLLUMNS + x] = '@';
+                }
+                if (((pow((dx * aspect) - sin(coef), 2) + pow(dy, 2) < 0.5) == (pow((dx * aspect) + sin(coef), 2) + pow(dy, 2) < 0.5)) && (((pow((dx * aspect) + sin(coef), 2) + pow(dy, 2) < 0.5) == true) && ((pow((dx * aspect) - sin(coef), 2) + pow(dy, 2))))) {
+                    map[y * COLLUMNS + x] = '%';
+                }
             }
-        }*/
-        draw_rect(x1,x2,y1,y2, map);
-        update(map);
+        }
+        coef-=0.01f;
+        std::cout << map;
     }
 
     return 0;
